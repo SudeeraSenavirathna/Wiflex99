@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hayleys Fentons Wi-Fi Switch Control</title>
+    <style>
+        :root {
+            --primary-color: #fc5404; /* Company primary color */
+            --secondary-color: #fcdccc; /* Complementary color */
+            --background-color: #f4f4f4; /* General background color */
+            --card-background-color: #ffffff;
+            --toggle-on-color: #fc5404; /* Accent color for toggle */
+            --text-color: #333333;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+            background-image: linear-gradient(to top, #fc5404, #fcdccc); /* Gradient background */
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .tab {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--card-background-color);
+            border-bottom: 1px solid #d1d1d6;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+        .tab button {
+            flex-grow: 1;
+            background-color: transparent;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--primary-color);
+            border-bottom: 3px solid transparent;
+            transition: color 0.3s, border-bottom 0.3s;
+        }
+        .tab button:hover {
+            color: var(--secondary-color);
+        }
+        .tab button.active {
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--text-color);
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            background-color: var(--card-background-color);
+            border-radius: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            box-shadow: 0 8px 16px var(--shadow-color);
+        }
+        .control-header {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        .control-header button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .control-header button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        .control-header button:active {
+            transform: translateY(0);
+        }
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+        }
+        .toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background-color: var(--background-color);
+            border-radius: 15px;
+            box-shadow: 0 2px 6px var(--shadow-color);
+            transition: box-shadow 0.3s;
+        }
+        .toggle:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .toggle input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 42px;
+            height: 26px;
+            background-color: #d1d1d6;
+            border-radius: 15px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .toggle input[type="checkbox"]:checked {
+            background-color: var(--toggle-on-color);
+        }
+        .toggle input[type="checkbox"]::before {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .toggle input[type="checkbox"]:checked::before {
+            transform: translateX(16px);
+        }
+        .config-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .config-item {
+            background-color: var(--card-background-color);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: box-shadow 0.3s;
+        }
+        .config-item:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .config-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: var(--primary-color);
+        }
+        .rename input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d1d6;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: border 0.3s;
+        }
+        .rename input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+        .rename label {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        .rename input[type="checkbox"] {
+            margin-left: 10px;
+        }
+        .save-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            transition: background-color 0.3s;
+            z-index: 1000;
+        }
+        .save-button:hover {
+            background-color: var(--secondary-color);
+        }
+        @media (max-width: 768px) {
+            .tab button {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+            .tabcontent {
+                padding: 15px;
+                margin: 10px;
+            }
+            .control-header button {
+                font-size: 12px;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablink");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    
+        function updateRelayState(relayNumber, state) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/update", true);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            const data = { relay: relayNumber, status: state };
+            xhr.send(JSON.stringify(data));
+    
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    console.log(`Relay ${relayNumber} updated: ${state}`);
+                } else {
+                    console.error(`Failed to update relay ${relayNumber}: ${xhr.statusText}`);
+                }
+            };
+        }
+    
+        function toggleAllSwitches(state) {
+            document.querySelectorAll('.control-panel input[type="checkbox"]').forEach((checkbox, index) => {
+                checkbox.checked = state;
+                updateRelayState(index + 1, state ? "on" : "off");
+            });
+        }
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.toggle input[type="checkbox"]').forEach((checkbox, index) => {
+                checkbox.addEventListener('change', () => {
+                    const state = checkbox.checked ? "on" : "off";
+                    updateRelayState(index + 1, state);
+                });
+            });
+    
+            document.querySelectorAll('.config-item').forEach((configItem, index) => {
+                const nameInput = configItem.querySelector('input[type="text"]');
+                const enableCheckbox = configItem.querySelector('input[type="checkbox"]');
+                const controlLabel = document.querySelector(`.control-panel .toggle:nth-child(${index + 1})`);
+    
+                // Update relay name on change
+                nameInput.addEventListener('input', () => {
+                    if (controlLabel) {
+                        controlLabel.firstChild.textContent = nameInput.value || `Relay ${index + 1}`;
+                    }
+                });
+    
+                // Show/hide relay on checkbox change
+                enableCheckbox.addEventListener('change', () => {
+                    if (controlLabel) {
+                        controlLabel.style.display = enableCheckbox.checked ? 'flex' : 'none';
+                    }
+                });
+            });
+    
+            document.getElementById("defaultTab").click();
+        });
+    </script>
+</head>
+<body>
+    <div class="tab">
+        <button class="tablink" onclick="openTab(event, 'Control')" id="defaultTab">Control</button>
+        <button class="tablink" onclick="openTab(event, 'SystemConfig')">System Config</button>
+    </div>
+
+    <div id="Control" class="tabcontent">
+        <h2>Control Panel</h2>
+        <div class="control-header">
+            <button onclick="toggleAllSwitches(true)">All On</button>
+            <button onclick="toggleAllSwitches(false)">All Off</button>
+        </div>
+        <div class="control-panel">
+            <!-- 16 Toggle Switches -->
+            <div class="toggle">Relay 1 <input type="checkbox"></div>
+            <div class="toggle">Relay 2 <input type="checkbox"></div>
+            <div class="toggle">Relay 3 <input type="checkbox"></div>
+            <div class="toggle">Relay 4 <input type="checkbox"></div>
+            <div class="toggle">Relay 5 <input type="checkbox"></div>
+            <div class="toggle">Relay 6 <input type="checkbox"></div>
+            <div class="toggle">Relay 7 <input type="checkbox"></div>
+            <div class="toggle">Relay 8 <input type="checkbox"></div>
+            <div class="toggle">Relay 9 <input type="checkbox"></div>
+            <div class="toggle">Relay 10 <input type="checkbox"></div>
+            <div class="toggle">Relay 11 <input type="checkbox"></div>
+            <div class="toggle">Relay 12 <input type="checkbox"></div>
+            <div class="toggle">Relay 13 <input type="checkbox"></div>
+            <div class="toggle">Relay 14 <input type="checkbox"></div>
+            <div class="toggle">Relay 15 <input type="checkbox"></div>
+            <div class="toggle">Relay 16 <input type="checkbox"></div>
+        </div>
+    </div>
+
+    <div id="SystemConfig" class="tabcontent">
+        <h2>System Configuration</h2>
+        <div class="config-panel">
+            <!-- 16 Configurable Switches with Editable Names -->
+            <div class="config-item">
+                <div class="config-header">Relay 1</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 1">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 2</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 3</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 4</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 5</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 16">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 6</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 7</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 8</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 9</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 10</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 16">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 11</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 12</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 13</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 14</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 15</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-header">Relay 16</div>
+                <div class="rename">
+                    <input type="text" placeholder="Rename Relay 2">
+                    <label>Enable <input type="checkbox" checked></label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save buttons -->
+    <button class="save-button" id="saveConfigButton" onclick="saveConfigSettings()">Save</button>
+</body>
+</html>
